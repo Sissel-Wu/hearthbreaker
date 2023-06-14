@@ -1,5 +1,15 @@
 Hearthbreaker
 =============
+
+Mutating Tests
+-----------------------
+1. Identify classes in the [test set](). Let us call them CT.
+2. For each class `c` in CT, identify its location in this project, and insert a new class `cm` by mutating the class name and numeric values in `c`.
+3. After the mutation, you can execute the tests and check that every test still passes.
+4. For each mutated class `cm`, create a new test for it by referring to the test for `c`.
+5. For each new test, make sure `cm` passes. Otherwise, record the failing `cm`s and tests.
+
+
 A Hearthstone Simulator
 -----------------------
 
