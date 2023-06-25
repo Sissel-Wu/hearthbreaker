@@ -7,7 +7,7 @@ from tests.agents.testing_agents import PlayAndAttackAgent, OneCardPlayingAgent,
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
 from hearthbreaker.agents.basic_agents import PredictableAgent, DoNothingAgent
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestRogue(unittest.TestCase):
     def setUp(self):
@@ -221,6 +221,33 @@ class TestRogue(unittest.TestCase):
         self.assertEqual(2, game.players[0].minions[2].health)
         self.assertEqual(3, game.players[0].minions[3].health)
 
+    def test_FloppyFur(self):
+        game = generate_game_for(Shieldbearer, FloppyFur, OneCardPlayingAgent, PredictableAgent)
+
+        for turn in range(0, 11):
+            game.play_single_turn()
+
+        self.assertEqual(6, len(game.players[0].minions))
+        self.assertEqual(30, game.players[0].hero.health)
+        self.assertEqual(4, game.players[0].minions[0].health)
+        self.assertEqual(3, game.players[0].minions[1].health)
+        self.assertEqual(3, game.players[0].minions[2].health)
+        self.assertEqual(3, game.players[0].minions[3].health)
+        self.assertEqual(3, game.players[0].minions[4].health)
+        self.assertEqual(4, game.players[0].minions[5].health)
+
+        # An attack with our knife should first happen, and then should Blade Flurry be played, destroying our knife
+        # and dealing 1 damage to all enemy minions
+        game.play_single_turn()
+        self.assertEqual(6, len(game.players[0].minions))
+        self.assertEqual(29, game.players[0].hero.health)
+        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(2, game.players[0].minions[1].health)
+        self.assertEqual(2, game.players[0].minions[2].health)
+        self.assertEqual(2, game.players[0].minions[3].health)
+        self.assertEqual(2, game.players[0].minions[4].health)
+        self.assertEqual(3, game.players[0].minions[5].health)
+
     def test_ColdBlood(self):
         game = generate_game_for([StonetuskBoar, ColdBlood, ColdBlood], StonetuskBoar,
                                  CardTestingAgent, DoNothingAgent)
@@ -237,6 +264,23 @@ class TestRogue(unittest.TestCase):
 
     def test_Conceal(self):
         game = generate_game_for([StonetuskBoar, Conceal, MogushanWarden], StonetuskBoar, CardTestingAgent,
+                                 DoNothingAgent)
+
+        for turn in range(0, 3):
+            game.play_single_turn()
+
+        # Stonetusk and Conceal should have been played
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertTrue(game.players[0].minions[0].stealth)
+
+        game.play_single_turn()
+        # Conceal should fade off
+        game.play_single_turn()
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertFalse(game.players[0].minions[0].stealth)
+
+    def test_Reveal(self):
+        game = generate_game_for([StonetuskBoar, Reveal, MogushanWarden], StonetuskBoar, CardTestingAgent,
                                  DoNothingAgent)
 
         for turn in range(0, 3):
@@ -739,6 +783,28 @@ class TestRogue(unittest.TestCase):
         game.play_single_turn()
 
         self.assertEqual(25, game.players[1].hero.health)
+
+    def test_FairyWand(self):
+        game = generate_game_for([FairyWand, ClockworkGnome, Deathwing], DeadlyShot,
+                                 PlayAndAttackAgent, OneCardPlayingAgent)
+        for turn in range(0, 6):
+            game.play_single_turn()
+
+        self.assertEqual(2, game.players[0].weapon.base_attack)
+        self.assertEqual(28, game.players[1].hero.health)
+        self.assertEqual(0, len(game.players[0].minions))
+
+        # Plays Clockwork Gnome, buffing Wrench
+        game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(25, game.players[1].hero.health)
+
+        # Deadly Shot kills Clockwork Gnome, removing Wrench buff
+        game.play_single_turn()
+        game.play_single_turn()
+
+        self.assertEqual(23, game.players[1].hero.health)
 
     def test_GangUp(self):
         game = generate_game_for(GangUp, StonetuskBoar, OneCardPlayingAgent, OneCardPlayingAgent)

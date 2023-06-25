@@ -8,6 +8,7 @@ from hearthbreaker.constants import CHARACTER_CLASS
 from tests.testing_utils import generate_game_for, StackedDeck
 from hearthbreaker.replay import playback, Replay
 from hearthbreaker.cards import *
+from hearthbreaker.cards.minions.testsets import *
 
 
 class TestPriest(unittest.TestCase):
@@ -217,6 +218,49 @@ class TestPriest(unittest.TestCase):
     def test_ShadowMadness(self):
         game = generate_game_for([MagmaRager, MogushanWarden, WarGolem],
                                  [ShadowMadness, ShadowMadness, Silence], OneCardPlayingAgent,
+                                 PlayAndAttackAgent)
+
+        # Magma Rager should be played
+        for turn in range(0, 5):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual("Magma Rager", game.players[0].minions[0].card.name)
+        self.assertEqual(7, len(game.players[1].hand))
+
+        # Shadow Madness shouldn't be played, since Magma Rager has attack > 3
+        game.play_single_turn()
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(8, len(game.players[1].hand))
+
+        # Mogu'shan Warden should be played
+        game.play_single_turn()
+        self.assertEqual(2, len(game.players[0].minions))
+        self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
+
+        # Shadow Madness should be played, targeting the Mogu'shan that will attack the Magma.
+        # Results in killing the Magma, and Mogu'shan takes 5 damage before being returned to the owner.
+        game.play_single_turn()
+        self.assertEqual(0, len(game.players[1].minions))
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
+        self.assertEqual(2, game.players[0].minions[0].health)
+
+        # Nothing should happen, no mana for War Golem
+        game.play_single_turn()
+
+        # Shadow Madness should be played again targeting the damaged Mogu'shan. Silence should follow after, that
+        # target the "mind controlled" Mogu'shan, immediately causing it to switch to our side, before it can attack.
+        game.play_single_turn()
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(0, len(game.players[1].minions))
+        self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
+        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(30, game.players[0].hero.health)
+
+    def test_CornerCreature(self):
+        game = generate_game_for([MagmaRager, MogushanWarden, WarGolem],
+                                 [CornerCreature, CornerCreature, Silence], OneCardPlayingAgent,
                                  PlayAndAttackAgent)
 
         # Magma Rager should be played
@@ -835,6 +879,18 @@ class TestPriest(unittest.TestCase):
         self.assertEqual(5, game.current_player.minions[0].health)
         self.assertEqual(2, game.other_player.minions[0].calculate_max_health())
         self.assertEqual(2, game.other_player.minions[0].health)
+
+    def test_Sonata(self):
+        game = generate_game_for(Sonata, ChillwindYeti, OneCardPlayingAgent, OneCardPlayingAgent)
+        for turn in range(9):
+            game.play_single_turn()
+
+        self.assertEqual(3, len(game.current_player.minions))
+        self.assertEqual(1, len(game.other_player.minions))
+        self.assertEqual(5, game.current_player.minions[0].calculate_max_health())
+        self.assertEqual(5, game.current_player.minions[0].health)
+        self.assertEqual(4, game.other_player.minions[0].calculate_max_health())
+        self.assertEqual(4, game.other_player.minions[0].health)
 
     def test_Resurrect(self):
         game = generate_game_for([StonetuskBoar, VitalityTotem, Resurrect, BoulderfistOgre], ArcaneShot,

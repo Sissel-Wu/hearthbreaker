@@ -6,7 +6,7 @@ from tests.agents.testing_agents import OneCardPlayingAgent, PlayAndAttackAgent,
     SelfSpellTestingAgent, EnemyMinionSpellTestingAgent
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestWarrior(unittest.TestCase):
     def setUp(self):
@@ -278,6 +278,34 @@ class TestWarrior(unittest.TestCase):
         self.assertEqual("Damaged Golem", game.players[0].minions[0].card.name)
         self.assertEqual(1, len(game.players[1].minions))
 
+    def test_Kenka(self):
+        game = generate_game_for(Kenka, StonetuskBoar, CardTestingAgent, DoNothingAgent)
+
+        game.players[0].mana = 100
+
+        shield = Shieldbearer()
+        shield.player = game.players[0]
+        shield.use(game.players[0], game)
+        shield.use(game.players[0], game)
+        golem = HarvestGolem()
+        golem.player = game.players[0]
+        golem.use(game.players[0], game)
+        shield.use(game.players[1], game)
+        shield.use(game.players[1], game)
+        shield.use(game.players[1], game)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        self.assertEqual(3, len(game.players[0].minions))
+        self.assertEqual(3, len(game.players[1].minions))
+
+        # Brawl should be played, leaving one minion behind and Damaged Golem should have spawned for first player
+        game.play_single_turn()
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual("Damaged Golem", game.players[0].minions[0].card.name)
+        self.assertEqual(1, len(game.players[1].minions))
+
     def test_Charge(self):
         game = generate_game_for([Shieldbearer, Charge], StonetuskBoar, CardTestingAgent, DoNothingAgent)
         game.players[0].agent.play_on = 4
@@ -394,6 +422,20 @@ class TestWarrior(unittest.TestCase):
         self.assertEqual(2, game.players[0].weapon.base_attack)
         self.assertEqual(4, game.players[0].weapon.durability)
 
+    def test_Sublimate(self):
+        game = generate_game_for(Sublimate, StonetuskBoar, OneCardPlayingAgent, DoNothingAgent)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        self.assertEqual(1, game.players[0].weapon.base_attack)
+        self.assertEqual(3, game.players[0].weapon.durability)
+
+        game.play_single_turn()
+
+        self.assertEqual(4, game.players[0].weapon.base_attack)
+        self.assertEqual(4, game.players[0].weapon.durability)
+
     def test_MortalStrike(self):
         game = generate_game_for(MortalStrike, StonetuskBoar, SelfSpellTestingAgent, DoNothingAgent)
         game.players[0].hero.health = 14
@@ -462,6 +504,17 @@ class TestWarrior(unittest.TestCase):
         self.assertEqual(3, game.current_player.weapon.base_attack)
         self.assertEqual(27, game.other_player.hero.health)
 
+    def test_FireHydrant(self):
+        game = generate_game_for(FireHydrant, BoulderfistOgre,
+                                 PlayAndAttackAgent, DoNothingAgent)
+
+        for turn in range(0, 3):
+            game.play_single_turn()
+
+        self.assertEqual(3, game.current_player.weapon.durability)
+        self.assertEqual(4, game.current_player.weapon.base_attack)
+        self.assertEqual(27, game.other_player.hero.health)
+
     def test_DeathsBite(self):
         game = generate_game_for([IronfurGrizzly, DeathsBite], Deathlord,
                                  PlayAndAttackAgent, OneCardPlayingAgent)
@@ -482,6 +535,28 @@ class TestWarrior(unittest.TestCase):
         self.assertEqual(3, game.other_player.minions[0].health)
         self.assertEqual(2, len(game.current_player.minions))
         self.assertEqual(2, game.current_player.minions[0].health)
+        self.assertEqual(3, game.current_player.minions[1].health)
+
+    def test_MorningCall(self):
+        game = generate_game_for([IronfurGrizzly, MorningCall], Deathlord,
+                                 PlayAndAttackAgent, OneCardPlayingAgent)
+
+        for turn in range(0, 7):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertIsNotNone(game.current_player.weapon)
+        self.assertEqual(4, game.other_player.minions[0].health)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        # The Death's Bite attacks the new Deathlord, triggering the weapon's deathrattle
+        # This finishes off the other deathlord and the first friendly Grizzly
+        self.assertEqual(2, len(game.other_player.minions))
+        self.assertEqual(5, game.other_player.minions[0].health)
+        self.assertEqual(2, len(game.current_player.minions))
+        self.assertEqual(1, game.current_player.minions[0].health)
         self.assertEqual(3, game.current_player.minions[1].health)
 
     def test_Warbot(self):
@@ -634,6 +709,27 @@ class TestWarrior(unittest.TestCase):
         # Will draw multiple mines in a row
         self.assertEqual(30, game.players[1].hero.health)
         for turn in range(43):
+            game.play_single_turn()
+        self.assertEqual(0, game.players[1].hero.health)
+
+    def test_CherryBomb(self):
+        game = generate_game_for(CherryBomb, CircleOfHealing, OneCardPlayingAgent, PredictableAgent)
+        for turn in range(9):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual("Cherry Bomb", game.players[0].minions[0].card.name)
+
+        found_mine = False
+        for card in game.players[1].deck.cards:
+            if card.name == "Burrowing Mine":
+                found_mine = True
+
+        self.assertTrue(found_mine, "Did not find the burrowing mine in the opponent's deck")
+
+        # Will draw multiple mines in a row
+        self.assertEqual(30, game.players[1].hero.health)
+        for turn in range(45):
             game.play_single_turn()
         self.assertEqual(0, game.players[1].hero.health)
 

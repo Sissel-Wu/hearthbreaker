@@ -9,7 +9,7 @@ from tests.agents.testing_agents import CardTestingAgent, OneCardPlayingAgent, E
     MinionAttackingAgent, PlayAndAttackAgent
 from tests.testing_utils import generate_game_for, StackedDeck
 from hearthbreaker.cards import *
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestMage(unittest.TestCase):
     def setUp(self):
@@ -352,6 +352,40 @@ class TestMage(unittest.TestCase):
         self.assertEqual(0, len(game.other_player.minions))
         self.assertEqual(1, len(game.other_player.secrets))
 
+    def test_Troublemaker(self):
+        game = generate_game_for([Troublemaker, Wisp], Moonfire, CardTestingAgent, CardTestingAgent)
+
+        for turn in range(0, 8):
+            game.play_single_turn()
+
+        # The moonfire should have been re-directed to the Spellbender, which should have taken one damage
+        self.assertEqual(2, len(game.other_player.minions))
+        self.assertEqual(3, game.other_player.minions[1].health)
+        self.assertEqual(2, game.other_player.minions[1].calculate_attack())
+        self.assertEqual("Troublemaker", game.other_player.minions[1].card.name)
+
+        # Now make sure it won't work when the hero is targeted
+        random.seed(1857)
+        game = generate_game_for(Troublemaker, Moonfire, CardTestingAgent, CardTestingAgent)
+
+        for turn in range(0, 8):
+            game.play_single_turn()
+
+        self.assertEqual(0, len(game.other_player.minions))
+        self.assertEqual(1, len(game.other_player.secrets))
+        self.assertEqual(22, game.other_player.hero.health)
+
+        # Now make sure it doesn't activate when a non-targeted spell is used
+        random.seed(1857)
+        game = generate_game_for(Troublemaker, ArcaneIntellect, CardTestingAgent, CardTestingAgent)
+
+        for turn in range(0, 8):
+            game.play_single_turn()
+
+        # The arcane intellect should not have caused the Spellbender to activate
+        self.assertEqual(0, len(game.other_player.minions))
+        self.assertEqual(1, len(game.other_player.secrets))
+
     def test_SpellbenderFullBoard(self):
         game = generate_game_for([Spellbender, Onyxia], Assassinate, OneCardPlayingAgent, OneCardPlayingAgent)
 
@@ -432,6 +466,30 @@ class TestMage(unittest.TestCase):
         self.assertEqual("Vaporize", game.current_player.secrets[0].name)
         self.assertEqual(1, len(game.current_player.minions))
         self.assertEqual("Kirin Tor Mage", game.current_player.minions[0].card.name)
+        self.assertEqual(3, game.current_player.hand[0].mana_cost())
+        self.assertEqual("Spellbender", game.current_player.hand[0].name)
+
+        random.seed(1857)
+        game = generate_game_for([KirinTorMage, Vaporize], StonetuskBoar, OneCardPlayingAgent, DoNothingAgent)
+        for turn in range(0, 5):
+            game.play_single_turn()
+
+        self.assertEqual(0, len(game.current_player.secrets))
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertEqual("Kirin Tor Mage", game.current_player.minions[0].card.name)
+        self.assertEqual(3, game.current_player.hand[2].mana_cost())
+        self.assertEqual("Vaporize", game.current_player.hand[2].name)
+
+    def test_InfinitoDeLaufraut(self):
+        game = generate_game_for([InfinitoDeLaufraut, Vaporize, Spellbender], StonetuskBoar,
+                                 CardTestingAgent, DoNothingAgent)
+        for turn in range(0, 7):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.secrets))
+        self.assertEqual("Vaporize", game.current_player.secrets[0].name)
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertEqual("Infinito De Laufraut", game.current_player.minions[0].card.name)
         self.assertEqual(3, game.current_player.hand[0].mana_cost())
         self.assertEqual("Spellbender", game.current_player.hand[0].name)
 
@@ -535,6 +593,26 @@ class TestMage(unittest.TestCase):
 
     def test_Polymorph(self):
         game = generate_game_for(MogushanWarden, Polymorph, OneCardPlayingAgent, CardTestingAgent)
+
+        for turn in range(0, 7):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertTrue(game.current_player.minions[0].taunt)
+        self.assertEqual(1, game.current_player.minions[0].calculate_attack())
+        self.assertEqual(7, game.current_player.minions[0].health)
+        self.assertEqual("Mogu'shan Warden", game.current_player.minions[0].card.name)
+
+        game.play_single_turn()
+        self.assertEqual(1, len(game.other_player.minions))
+        self.assertFalse(game.other_player.minions[0].taunt)
+        self.assertEqual(1, game.other_player.minions[0].calculate_attack())
+        self.assertEqual(1, game.other_player.minions[0].health)
+        self.assertEqual("Sheep", game.other_player.minions[0].card.name)
+        self.assertEqual(MINION_TYPE.BEAST, game.other_player.minions[0].card.minion_type)
+
+    def test_Trigonometric(self):
+        game = generate_game_for(MogushanWarden, Trigonometric, OneCardPlayingAgent, CardTestingAgent)
 
         for turn in range(0, 7):
             game.play_single_turn()
@@ -836,6 +914,25 @@ class TestMage(unittest.TestCase):
 
     def test_EchoOfMedivh(self):
         game = generate_game_for([NoviceEngineer, NoviceEngineer, GnomishInventor, GnomishInventor, EchoOfMedivh], Wisp,
+                                 OneCardPlayingAgent, DoNothingAgent)
+        for turn in range(0, 10):
+            game.play_single_turn()
+
+        # Plays first 4 "draw" minions
+        self.assertEqual(8, len(game.players[0].hand))
+        self.assertEqual(4, len(game.players[0].minions))
+
+        game.play_single_turn()
+
+        # Plays Echo and overflows
+        self.assertEqual(10, len(game.players[0].hand))
+        self.assertEqual(4, len(game.players[0].minions))
+        self.assertEqual("Novice Engineer", game.players[0].hand[8].name)
+        self.assertEqual("Novice Engineer", game.players[0].hand[9].name)
+
+    def test_SingularOptics(self):
+        game = generate_game_for([NoviceEngineer, NoviceEngineer, GnomishInventor, GnomishInventor, SingularOptics],
+                                 Wisp,
                                  OneCardPlayingAgent, DoNothingAgent)
         for turn in range(0, 10):
             game.play_single_turn()

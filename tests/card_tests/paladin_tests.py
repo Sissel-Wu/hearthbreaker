@@ -8,6 +8,7 @@ from tests.agents.testing_agents import OneCardPlayingAgent, CardTestingAgent, E
 from tests.testing_utils import generate_game_for
 from hearthbreaker.replay import playback, Replay
 from hearthbreaker.cards import *
+from hearthbreaker.cards.minions.testsets import *
 
 
 class TestPaladin(unittest.TestCase):
@@ -233,6 +234,17 @@ class TestPaladin(unittest.TestCase):
         # Holy Wrath should be played that will draw Holy Wrath that costs 5 mana, thus dealing 5 damage
         self.assertEqual(25, game.players[0].hero.health)
 
+    def test_StarLight(self):
+        game = generate_game_for(StonetuskBoar, StarLight, DoNothingAgent, CardTestingAgent)
+
+        for turn in range(0, 11):
+            game.play_single_turn()
+
+        self.assertEqual(30, game.players[0].hero.health)
+        game.play_single_turn()
+        # Star Light should be played that will draw Holy Wrath that costs 6 mana, thus dealing 6 damage
+        self.assertEqual(24, game.players[0].hero.health)
+
     def test_HolyWrath_fatigue(self):
         game = generate_game_for(ArcaneExplosion, [Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp,
                                                    Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp, Wisp,
@@ -378,6 +390,29 @@ class TestPaladin(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].secrets))
         self.assertEqual("Noble Sacrifice", game.players[0].secrets[0].name)
 
+    def test_CubicRoom(self):
+        game = generate_game_for(CubicRoom, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
+
+        game.play_single_turn()
+        # NobleSacrifice should be played
+        self.assertEqual(1, len(game.players[0].secrets))
+        self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
+
+        game.play_single_turn()
+        # Attack with Stonetusk should happen, and the secret should trigger. Both minions should die.
+        self.assertEqual(0, len(game.players[0].secrets))
+        self.assertEqual(0, len(game.players[0].minions))
+        self.assertEqual(0, len(game.players[1].minions))
+        self.assertEqual(30, game.players[0].hero.health)
+
+        # Test with 7 minions
+        game = playback(Replay("tests/replays/card_tests/NobleSacrifice.hsreplay"))
+        game.start()
+        self.assertEqual(7, len(game.players[0].minions))
+        self.assertEqual(29, game.players[0].hero.health)
+        self.assertEqual(1, len(game.players[0].secrets))
+        self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
+
     def test_Redemption(self):
         game = generate_game_for([Redemption, SilvermoonGuardian], WarGolem, CardTestingAgent, PredictableAgent)
 
@@ -408,6 +443,38 @@ class TestPaladin(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].minions))
         self.assertEqual(3, game.players[0].minions[0].calculate_max_health())
         self.assertEqual(1, game.players[0].minions[0].health)
+        self.assertTrue(game.players[0].minions[0].divine_shield)
+
+    def test_Detention(self):
+        game = generate_game_for([Detention, SilvermoonGuardian], WarGolem, CardTestingAgent, PredictableAgent)
+
+        # Redemption and Silvermoon Guardian should be played
+        for turn in range(0, 7):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].secrets))
+        self.assertEqual("Detention", game.players[0].secrets[0].name)
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(3, game.players[0].minions[0].calculate_max_health())
+        self.assertEqual(3, game.players[0].minions[0].health)
+        self.assertTrue(game.players[0].minions[0].divine_shield)
+
+        # Mage hero power should have been used
+        for turn in range(0, 6):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].secrets))
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(3, game.players[0].minions[0].calculate_max_health())
+        self.assertEqual(1, game.players[0].minions[0].health)
+        self.assertFalse(game.players[0].minions[0].divine_shield)
+
+        game.play_single_turn()
+        # Silvermoon Guardian should be killed by the mage hero power, that will trigger the secret
+        self.assertEqual(0, len(game.players[0].secrets))
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(3, game.players[0].minions[0].calculate_max_health())
+        self.assertEqual(2, game.players[0].minions[0].health)
         self.assertTrue(game.players[0].minions[0].divine_shield)
 
     def test_RedemptionEnemy(self):
@@ -724,6 +791,20 @@ class TestPaladin(unittest.TestCase):
         self.assertEqual("Nerubian", game.other_player.minions[0].card.name)
         self.assertEqual("Stonetusk Boar", game.other_player.minions[1].card.name)
 
+    def test_VioletPolarizer(self):
+        game = generate_game_for([LootHoarder, VioletPolarizer], [StonetuskBoar, NerubianEgg],
+                                 CardTestingAgent, CardTestingAgent)
+
+        for turn in range(5):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertEqual(2, len(game.other_player.minions))
+
+        self.assertEqual("Violet Polarizer", game.current_player.minions[0].card.name)
+        self.assertEqual("Nerubian Egg", game.other_player.minions[0].card.name)
+        self.assertEqual("Stonetusk Boar", game.other_player.minions[1].card.name)
+
     def test_BolvarFordragon(self):
         game = generate_game_for([MusterForBattle, BolvarFordragon], [FanOfKnives],
                                  OneCardPlayingAgent, OneCardPlayingAgent)
@@ -774,6 +855,19 @@ class TestPaladin(unittest.TestCase):
 
         self.assertEqual(0, len(game.players[0].minions))
         self.assertEqual(9, len(game.players[1].hand))
+
+    def test_WutheringHills(self):
+        game = generate_game_for(Wisp, [Consecration, WutheringHills], CardTestingAgent, CardTestingAgent)
+        for turn in range(7):
+            game.play_single_turn()
+
+        self.assertEqual(7, len(game.players[0].minions))
+        self.assertEqual(8, len(game.players[1].hand))
+
+        game.play_single_turn()
+
+        self.assertEqual(0, len(game.players[0].minions))
+        self.assertEqual(10, len(game.players[1].hand))
 
     def test_DragonConsort_no_dragon(self):
         game = generate_game_for([DragonConsort, Ysera, Alexstrasza], Chromaggus,

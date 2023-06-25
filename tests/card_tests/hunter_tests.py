@@ -7,7 +7,7 @@ from tests.agents.testing_agents import CardTestingAgent, OneCardPlayingAgent, W
     PlayAndAttackAgent, SelfSpellTestingAgent
 from tests.testing_utils import generate_game_for, mock
 from hearthbreaker.cards import *
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestHunter(unittest.TestCase):
     def setUp(self):
@@ -223,6 +223,32 @@ class TestHunter(unittest.TestCase):
         self.assertEqual(30, game.current_player.hero.health)
         self.assertEqual(27, game.other_player.hero.health)
 
+    def test_Retaliate(self):
+        game = generate_game_for(Retaliate, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
+
+        for turn in range(0, 7):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.secrets))
+        self.assertEqual(7, len(game.other_player.minions))
+
+        game.play_single_turn()
+
+        self.assertEqual(0, len(game.other_player.secrets))
+        self.assertEqual(0, len(game.current_player.minions))
+        self.assertEqual(27, game.current_player.hero.health)
+        self.assertEqual(19, game.other_player.hero.health)
+
+        random.seed(1857)
+        game = generate_game_for(ExplosiveTrap, Frostbolt, CardTestingAgent, CardTestingAgent)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.other_player.secrets))
+        self.assertEqual(30, game.current_player.hero.health)
+        self.assertEqual(27, game.other_player.hero.health)
+
     def test_FreezingTrap(self):
         game = generate_game_for(FreezingTrap, BluegillWarrior, CardTestingAgent, PlayAndAttackAgent)
 
@@ -273,6 +299,16 @@ class TestHunter(unittest.TestCase):
 
     def test_Misdirection(self):
         game = generate_game_for(Misdirection, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        self.assertEqual(28, game.other_player.hero.health)
+        self.assertEqual(1, len(game.current_player.minions))  # The boar has been misdirected into another boar
+        self.assertEqual(30, game.current_player.hero.health)
+
+    def test_Manifestation(self):
+        game = generate_game_for(Manifestation, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
 
         for turn in range(0, 4):
             game.play_single_turn()

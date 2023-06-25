@@ -7,7 +7,7 @@ from tests.agents.testing_agents import OneCardPlayingAgent, EnemySpellTestingAg
 from hearthbreaker.constants import MINION_TYPE
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestWarlock(unittest.TestCase):
     def setUp(self):
@@ -35,6 +35,23 @@ class TestWarlock(unittest.TestCase):
         # mortal coils the 1hp raptor and draws
         self.assertEqual(0, len(game.players[0].minions))
         self.assertEqual(6, len(game.players[1].hand))
+
+    def test_FaradayCage(self):
+        game = generate_game_for(BloodfenRaptor, FaradayCage, DoNothingAgent, OneCardPlayingAgent)
+
+        raptor = BloodfenRaptor()
+        raptor.summon(game.players[0], game, 0)
+        # player 0 plays raptor
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(5, len(game.players[1].hand))
+
+        game.play_single_turn()
+        game.play_single_turn()
+        # mortal coils the 2hp raptor
+        self.assertEqual(6, len(game.players[1].hand))
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(2, game.players[0].minions[0].health)
 
     def test_MortalCoilDivineShield(self):
         game = generate_game_for(StonetuskBoar, MortalCoil, DoNothingAgent, OneCardPlayingAgent)
@@ -133,6 +150,19 @@ class TestWarlock(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].minions))
         self.assertEqual(5, len(game.players[0].hand))
 
+    def test_Sheepfold(self):
+        game = generate_game_for(Sheepfold, StonetuskBoar, OneCardPlayingAgent, DoNothingAgent)
+        for turn in range(0, 6):
+            game.play_single_turn()
+
+        self.assertEqual(0, len(game.players[0].minions))
+        self.assertEqual(6, len(game.players[0].hand))
+
+        game.play_single_turn()
+        # Plays Sheepfold, discards once
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(5, len(game.players[0].hand))
+
     def test_Hellfire(self):
         game = generate_game_for(Hellfire, SilverbackPatriarch, CardTestingAgent, OneCardPlayingAgent)
         for turn in range(0, 6):
@@ -149,6 +179,23 @@ class TestWarlock(unittest.TestCase):
         self.assertEqual(1, game.players[1].minions[0].health)
         self.assertEqual(27, game.players[0].hero.health)
         self.assertEqual(27, game.players[1].hero.health)
+
+    def test_HeavenWater(self):
+        game = generate_game_for(HeavenWater, SilverbackPatriarch, CardTestingAgent, OneCardPlayingAgent)
+        for turn in range(0, 6):
+            game.play_single_turn()
+            # plays 1 Silverback Patriarch
+        self.assertEqual(1, len(game.players[1].minions))
+        self.assertEqual(28, game.players[0].hero.health)
+        self.assertEqual(4, game.players[1].minions[0].health)
+        self.assertEqual(28, game.players[1].hero.health)
+
+        game.play_single_turn()
+        # Plays Hellfire, 3 damage to all
+        self.assertEqual(1, len(game.players[1].minions))
+        self.assertEqual(2, game.players[1].minions[0].health)
+        self.assertEqual(26, game.players[0].hero.health)
+        self.assertEqual(26, game.players[1].hero.health)
 
     def test_ShadowBolt(self):
         game = generate_game_for(ShadowBolt, SilverbackPatriarch, CardTestingAgent, OneCardPlayingAgent)
@@ -270,6 +317,19 @@ class TestWarlock(unittest.TestCase):
         game.play_single_turn()
         # Siphon Soul on the Boar
         self.assertEqual(8, game.players[1].hero.health)
+
+    def test_LucratiousDeal(self):
+        game = generate_game_for(MindBlast, LucratiousDeal, OneCardPlayingAgent, CardTestingAgent)
+        for turn in range(0, 11):
+            game.play_single_turn()
+            # Uses Mindblast for 5 turns
+        self.assertEqual(5, game.players[1].hero.health)
+        boar = StonetuskBoar()
+        boar.summon(game.players[0], game, 0)
+
+        game.play_single_turn()
+        # Siphon Soul on the Boar
+        self.assertEqual(10, game.players[1].hero.health)
 
     def test_SenseDemons(self):
         game = generate_game_for([SenseDemons, Doomguard], StonetuskBoar, CardTestingAgent, DoNothingAgent)
@@ -435,6 +495,15 @@ class TestWarlock(unittest.TestCase):
         self.assertEqual('Wisp', game.players[0].hand[0].name)
         self.assertEqual(0, game.players[0].hand[0].mana_cost())
 
+    def test_ActionPeguintial(self):
+        game = generate_game_for([ActionPeguintial, Wisp], StonetuskBoar, OneCardPlayingAgent, DoNothingAgent)
+        for turn in range(0, 5):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual('Wisp', game.players[0].hand[0].name)
+        self.assertEqual(0, game.players[0].hand[0].mana_cost())
+
     def test_SummoningPortal_Mechwarper(self):
         game = generate_game_for([SummoningPortal, Mechwarper, SpiderTank], StonetuskBoar,
                                  OneCardPlayingAgent, DoNothingAgent)
@@ -573,6 +642,24 @@ class TestWarlock(unittest.TestCase):
         game.play_single_turn()
         self.assertEqual(1, len(game.other_player.minions))
         self.assertEqual("Flame Imp", game.other_player.minions[0].card.name)
+
+    def test_Nullpointer(self):
+        game = generate_game_for(Assassinate, [Nullpointer, FlameImp, ArgentSquire, BoulderfistOgre, StonetuskBoar],
+                                 CardTestingAgent, OneCardPlayingAgent)
+
+        for turn in range(0, 4):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.current_player.minions))
+        self.assertEqual(2, game.current_player.minions[0].health)
+        self.assertEqual("Nullpointer", game.current_player.minions[0].card.name)
+
+        for turn in range(0, 3):
+            game.play_single_turn()
+
+        self.assertEqual(2, len(game.other_player.minions))
+        self.assertEqual("Flame Imp", game.other_player.minions[0].card.name)
+
 
     def testAnimaGolem(self):
         game = generate_game_for([Loatheb, AnimaGolem, TwistingNether, AnimaGolem], StonetuskBoar,
@@ -762,6 +849,33 @@ class TestWarlock(unittest.TestCase):
         self.assertEqual(4, game.current_player.minions[0].calculate_max_health())
         self.assertEqual(6, game.current_player.minions[1].calculate_attack())
         self.assertEqual(6, game.current_player.minions[1].calculate_max_health())
+
+    def test_FlyingGuard(self):
+        game = generate_game_for(FlyingGuard, HeavenWater, HeroPowerAndCardPlayingAgent, OneCardPlayingAgent)
+
+        for turn in range(11):
+            game.play_single_turn()
+
+        self.assertEqual(2, len(game.current_player.minions))
+        self.assertEqual(14, game.current_player.hero.health)
+        self.assertEqual(2, game.current_player.minions[0].calculate_attack())
+        self.assertEqual(3, game.current_player.minions[0].calculate_max_health())
+        self.assertEqual(4, game.current_player.minions[1].calculate_attack())
+        self.assertEqual(4, game.current_player.minions[1].calculate_max_health())
+
+        game.play_single_turn()
+        self.assertEqual(1, len(game.other_player.minions))
+        self.assertEqual(12, game.other_player.hero.health)
+        self.assertEqual(2, game.other_player.minions[0].calculate_attack())
+        self.assertEqual(3, game.other_player.minions[0].calculate_max_health())
+
+        game.play_single_turn()
+        self.assertEqual(2, len(game.current_player.minions))
+        self.assertEqual(10, game.current_player.hero.health)
+        self.assertEqual(2, game.current_player.minions[0].calculate_attack())
+        self.assertEqual(3, game.current_player.minions[0].calculate_max_health())
+        self.assertEqual(4, game.current_player.minions[1].calculate_attack())
+        self.assertEqual(4, game.current_player.minions[1].calculate_max_health())
 
     def test_MistressOfPain(self):
         game = generate_game_for([MistressOfPain, AbusiveSergeant], SinisterStrike,

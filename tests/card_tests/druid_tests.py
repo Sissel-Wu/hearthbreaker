@@ -12,7 +12,7 @@ from hearthbreaker.constants import CHARACTER_CLASS, MINION_TYPE, CARD_RARITY
 from hearthbreaker.replay import playback, Replay
 from tests.testing_utils import generate_game_for, StackedDeck, mock
 from hearthbreaker.cards import *
-
+from hearthbreaker.cards.minions.testsets import *
 
 class TestDruid(unittest.TestCase):
     def setUp(self):
@@ -28,6 +28,23 @@ class TestDruid(unittest.TestCase):
             game.play_single_turn()
 
         # The mana should not go over 10 on turn 9 (or any other turn)
+        self.assertEqual(10, game.current_player.mana)
+
+    def test_Sterilize(self):
+        game = generate_game_for(Sterilize, StonetuskBoar, SelfSpellTestingAgent, DoNothingAgent)
+        # triggers all four innervate cards the player is holding.
+        game.play_single_turn()
+        self.assertEqual(1, game.current_player.mana)
+
+        for turn in range(0, 16):
+            game.play_single_turn()
+
+        # The mana should not go over 10 on turn 9 (or any other turn)
+        self.assertEqual(9, game.current_player.mana)
+
+        game.play_single_turn()
+        game.play_single_turn()
+
         self.assertEqual(10, game.current_player.mana)
 
     def test_Claw(self):
@@ -100,6 +117,46 @@ class TestDruid(unittest.TestCase):
 
     def test_PowerOfTheWild(self):
         deck1 = StackedDeck([StonetuskBoar(), StonetuskBoar(), PowerOfTheWild()], CHARACTER_CLASS.DRUID)
+        deck2 = StackedDeck([StonetuskBoar()], CHARACTER_CLASS.MAGE)
+
+        # This is a test of the +1/+1 option of the Power Of the Wild Card
+        game = Game([deck1, deck2], [OneCardPlayingAgent(), OneCardPlayingAgent()])
+        game.current_player = game.players[1]
+
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        self.assertEqual(2, game.current_player.minions[0].calculate_attack())
+        self.assertEqual(2, game.current_player.minions[0].health)
+        self.assertEqual(2, game.current_player.minions[0].calculate_max_health())
+        self.assertEqual(2, game.current_player.minions[1].calculate_attack())
+        self.assertEqual(2, game.current_player.minions[1].calculate_max_health())
+
+        # This is a test of the "Summon Panther" option of the Power of the Wild Card
+
+        agent = OneCardPlayingAgent()
+        agent.choose_option = lambda options, player: options[1]
+
+        deck1 = StackedDeck([StonetuskBoar(), StonetuskBoar(), PowerOfTheWild()], CHARACTER_CLASS.DRUID)
+        deck2 = StackedDeck([StonetuskBoar()], CHARACTER_CLASS.MAGE)
+        game = Game([deck1, deck2], [agent, OneCardPlayingAgent()])
+        game.current_player = game.players[1]
+
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+        game.play_single_turn()
+
+        self.assertEqual("Panther", game.current_player.minions[2].card.__class__.__name__)
+        self.assertEqual(3, game.current_player.minions[2].calculate_attack())
+        self.assertEqual(2, game.current_player.minions[2].calculate_max_health())
+
+    def test_VoiceOfTheLand(self):
+        deck1 = StackedDeck([StonetuskBoar(), StonetuskBoar(), VoiceOfTheLand()], CHARACTER_CLASS.DRUID)
         deck2 = StackedDeck([StonetuskBoar()], CHARACTER_CLASS.MAGE)
 
         # This is a test of the +1/+1 option of the Power Of the Wild Card

@@ -8,6 +8,7 @@ from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
 from hearthbreaker.constants import MINION_TYPE
 from hearthbreaker.agents.basic_agents import PredictableAgent, DoNothingAgent
+from hearthbreaker.cards.minions.testsets import *
 
 
 class TestShaman(unittest.TestCase):
@@ -53,6 +54,18 @@ class TestShaman(unittest.TestCase):
 
         self.assertEqual(1, len(game.players[0].minions))
         self.assertEqual("Earth Elemental", game.players[0].minions[0].card.name)
+        self.assertTrue(game.players[0].minions[0].taunt)
+        self.assertEqual(3, game.players[0].upcoming_overload)
+
+    def test_CrustalMovement(self):
+        game = generate_game_for(CrustalMovement, StonetuskBoar, OneCardPlayingAgent, DoNothingAgent)
+
+        # Earth Elemental should be played
+        for turn in range(0, 11):
+            game.play_single_turn()
+
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual("Crustal Movement", game.players[0].minions[0].card.name)
         self.assertTrue(game.players[0].minions[0].taunt)
         self.assertEqual(3, game.players[0].upcoming_overload)
 
@@ -538,6 +551,35 @@ class TestShaman(unittest.TestCase):
         game.play_single_turn()
 
         self.assertEqual(1, len(game.other_player.minions))
+        self.assertEqual(7, len(game.other_player.hand))
+        self.assertEqual(0, len(game.current_player.minions))
+        self.assertEqual(7, len(game.current_player.hand))
+
+    def test_SkylineKeeper(self):
+        game = generate_game_for([MurlocTidecaller, MurlocTidehunter, SkylineKeeper, Deathwing],
+                                 [MurlocTidecaller, Hellfire, BaneOfDoom], OneCardPlayingAgent, OneCardPlayingAgent)
+
+        for turn in range(4):
+            game.play_single_turn()
+
+        self.assertEqual(3, len(game.other_player.minions))
+        self.assertEqual(1, len(game.current_player.minions))
+
+        # Play Siltfin
+
+        game.play_single_turn()
+
+        self.assertEqual(4, len(game.current_player.minions))
+        self.assertEqual(1, len(game.other_player.minions))
+
+        self.assertEqual(3, len(game.current_player.hand))
+        self.assertEqual(6, len(game.other_player.hand))
+
+        # Hellfire will kill all the murlocs but the siltfin.
+        for turn in range(3):
+            game.play_single_turn()
+
+        self.assertEqual(0, len(game.other_player.minions))
         self.assertEqual(7, len(game.other_player.hand))
         self.assertEqual(0, len(game.current_player.minions))
         self.assertEqual(7, len(game.current_player.hand))
