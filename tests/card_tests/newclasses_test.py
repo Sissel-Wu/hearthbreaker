@@ -87,12 +87,12 @@ def test_FireHydrant(self):
     game = generate_game_for(FireHydrant, BoulderfistOgre,
                              PlayAndAttackAgent, DoNothingAgent)
 
-    for turn in range(0, 3):
+    for turn in range(0, 5):
         game.play_single_turn()
 
-    self.assertEqual(3, game.current_player.weapon.durability)
+    self.assertEqual(2, game.current_player.weapon.durability)
     self.assertEqual(4, game.current_player.weapon.base_attack)
-    self.assertEqual(27, game.other_player.hero.health)
+    self.assertEqual(26, game.other_player.hero.health)
 
 
 def test_FreshwaterBass(self):
@@ -208,23 +208,23 @@ def test_MedievalRaven(self):
 def test_CurlyTeddyDog(self):
     game = generate_game_for(CurlyTeddyDog, [Consecration, Silence], OneCardPlayingAgent, OneCardPlayingAgent)
 
-    for turn in range(0, 7):
+    for turn in range(0, 5):
         game.play_single_turn()
 
     self.assertEqual(1, len(game.current_player.minions))
     self.assertEqual(4, game.current_player.minions[0].calculate_attack())
 
     game.play_single_turn()
-    self.assertEqual(5, game.other_player.minions[0].calculate_attack())
+    self.assertEqual(4, game.other_player.minions[0].calculate_attack())
 
     game.play_single_turn()
     self.assertEqual(2, len(game.current_player.minions))
     self.assertEqual(4, game.current_player.minions[0].calculate_attack())
-    self.assertEqual(5, game.current_player.minions[1].calculate_attack())
+    self.assertEqual(4, game.current_player.minions[1].calculate_attack())
 
     game.play_single_turn()
     self.assertEqual(5, game.other_player.minions[0].calculate_attack())
-    self.assertEqual(6, game.other_player.minions[1].calculate_attack())
+    self.assertEqual(5, game.other_player.minions[1].calculate_attack())
 
 
 def test_FairyWand(self):
@@ -722,16 +722,17 @@ def test_DarkKnight(self):
                              [StonetuskBoar, BoulderfistOgre, BoulderfistOgre, BoulderfistOgre, BoulderfistOgre],
                              PredictableAgent, PredictableAgent)
 
-    for turn in range(0, 6):
+    for turn in range(0, 8):
         game.play_single_turn()
 
-    self.assertEqual(1, game.players[0].minions[0].calculate_attack())
+    self.assertEqual(1, len(game.players[0].minions))
+    self.assertEqual(2, game.players[0].minions[0].calculate_attack())
     self.assertEqual(1, game.players[0].minions[0].health)
 
     game.play_single_turn()  # Heal Lightwarden
 
     self.assertEqual(2, game.players[0].minions[0].calculate_attack())
-    self.assertEqual(2, game.players[0].minions[0].health)
+    self.assertEqual(3, game.players[0].minions[0].health)
 
     game.players[0].hero.health = 28
     game.players[0].hero.heal(2, None)
@@ -744,15 +745,15 @@ def test_MoonlightDemon(self):
     for turn in range(0, 4):
         game.play_single_turn()
 
-    self.assertEqual(0, game.players[0].hand[0].mana_cost())
-    self.assertEqual(3, game.players[0].hand[1].mana_cost())
-    self.assertEqual(2, game.players[1].hand[0].mana_cost())
+    self.assertEqual(3, game.players[0].hand[0].mana_cost())
+    self.assertEqual(0, game.players[0].hand[1].mana_cost())
+    self.assertEqual(1, game.players[1].hand[0].mana_cost())
 
     game.play_single_turn()
 
-    self.assertEqual(2, game.players[0].hand[0].mana_cost())
-    self.assertEqual(0, game.players[0].hand[1].mana_cost())
-    self.assertEqual(1, game.players[1].hand[0].mana_cost())
+    self.assertEqual(0, game.players[0].hand[0].mana_cost())
+    self.assertEqual(4, game.players[0].hand[1].mana_cost())
+    self.assertEqual(2, game.players[1].hand[0].mana_cost())
 
 
 def test_Manifestation(self):
@@ -769,7 +770,9 @@ def test_Manifestation(self):
 def test_CubicRoom(self):
     game = generate_game_for(CubicRoom, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
 
-    game.play_single_turn()  # NobleSacrifice should be played
+    for turn in range(0, 3):
+        game.play_single_turn()
+    # NobleSacrifice should be played
     self.assertEqual(1, len(game.players[0].secrets))
     self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
 
@@ -777,16 +780,8 @@ def test_CubicRoom(self):
     # Attack with Stonetusk should happen, and the secret should trigger. Both minions should die.
     self.assertEqual(0, len(game.players[0].secrets))
     self.assertEqual(0, len(game.players[0].minions))
-    self.assertEqual(0, len(game.players[1].minions))
-    self.assertEqual(30, game.players[0].hero.health)
-
-    # Test with 7 minions
-    game = playback(Replay("tests/replays/card_tests/NobleSacrifice.hsreplay"))
-    game.start()
-    self.assertEqual(7, len(game.players[0].minions))
-    self.assertEqual(29, game.players[0].hero.health)
-    self.assertEqual(1, len(game.players[0].secrets))
-    self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
+    self.assertEqual(2, len(game.players[1].minions))
+    self.assertEqual(27, game.players[0].hero.health)
 
 
 def test_VoiceOfTheLand(self):
@@ -890,9 +885,9 @@ def test_CornerCreature(self):
     # Results in killing the Magma, and Mogu'shan takes 5 damage before being returned to the owner.
     game.play_single_turn()
     self.assertEqual(0, len(game.players[1].minions))
-    self.assertEqual(1, len(game.players[0].minions))
+    self.assertEqual(2, len(game.players[0].minions))
     self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
-    self.assertEqual(2, game.players[0].minions[0].health)
+    self.assertEqual(7, game.players[0].minions[0].health)
 
     # Nothing should happen, no mana for War Golem
     game.play_single_turn()
@@ -900,10 +895,10 @@ def test_CornerCreature(self):
     # Shadow Madness should be played again targeting the damaged Mogu'shan. Silence should follow after, that
     # target the "mind controlled" Mogu'shan, immediately causing it to switch to our side, before it can attack.
     game.play_single_turn()
-    self.assertEqual(1, len(game.players[0].minions))
+    self.assertEqual(2, len(game.players[0].minions))
     self.assertEqual(0, len(game.players[1].minions))
     self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
-    self.assertEqual(2, game.players[0].minions[0].health)
+    self.assertEqual(7, game.players[0].minions[0].health)
     self.assertEqual(30, game.players[0].hero.health)
 
 

@@ -8,7 +8,7 @@ from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
 from hearthbreaker.constants import MINION_TYPE
 from hearthbreaker.agents.basic_agents import PredictableAgent, DoNothingAgent
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import CrustalMovement, SkylineKeeper
 
 
 class TestShaman(unittest.TestCase):

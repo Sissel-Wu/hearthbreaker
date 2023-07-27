@@ -7,7 +7,7 @@ from tests.agents.testing_agents import CardTestingAgent, OneCardPlayingAgent, W
     PlayAndAttackAgent, SelfSpellTestingAgent
 from tests.testing_utils import generate_game_for, mock
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import Retaliate, Manifestation
 
 class TestHunter(unittest.TestCase):
     def setUp(self):

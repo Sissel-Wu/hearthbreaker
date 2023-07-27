@@ -9,7 +9,7 @@ from tests.agents.testing_agents import CardTestingAgent, OneCardPlayingAgent, E
     MinionAttackingAgent, PlayAndAttackAgent
 from tests.testing_utils import generate_game_for, StackedDeck
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import Troublemaker, InfinitoDeLaufraut, Trigonometric, SingularOptics
 
 class TestMage(unittest.TestCase):
     def setUp(self):

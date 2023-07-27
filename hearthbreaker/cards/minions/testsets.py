@@ -1,7 +1,7 @@
-from hearthbreaker.cards.base import SpellCard, MinionCard, SecretCard
+from hearthbreaker.cards.base import SecretCard
 from hearthbreaker.cards.minions.neutral import *
 from hearthbreaker.cards.spells.druid import LeaderOfThePack, SummonPanther
-from hearthbreaker.game_objects import Minion, Hero
+from hearthbreaker.game_objects import Hero
 from hearthbreaker.tags.action import Heal, Summon, Draw, \
     Kill, Damage, ResurrectFriendly, Steal, Duplicate, Give, SwapWithHand, AddCard, Transform, ApplySecret, \
     Silence, Bounce, GiveManaCrystal, Equip, GiveAura, Replace, SetHealth, ChangeTarget, Discard, \
@@ -47,6 +47,8 @@ from hearthbreaker.tags.selector import BothPlayer, SelfSelector, TargetSelector
     PlayerSelector, EnemyPlayer, UserPicker, Count, CardSelector
 from hearthbreaker.constants import CHARACTER_CLASS, CARD_RARITY, MINION_TYPE
 from hearthbreaker.tags.status import ChangeAttack, Charge, ChangeHealth
+
+
 
 
 # "Sorcerer NAME_END 5 ATK_END 5 DEF_END 4 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Common RARITY_END <b>Spell Damage +2</b>"

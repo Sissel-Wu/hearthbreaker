@@ -7,7 +7,8 @@ from tests.agents.testing_agents import OneCardPlayingAgent, EnemySpellTestingAg
 from hearthbreaker.constants import MINION_TYPE
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import FaradayCage, Sheepfold, HeavenWater, LucratiousDeal, \
+    ActionPeguintial, Nullpointer, FlyingGuard
 
 class TestWarlock(unittest.TestCase):
     def setUp(self):

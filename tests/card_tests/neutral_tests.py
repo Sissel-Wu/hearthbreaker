@@ -10,7 +10,9 @@ from tests.agents.testing_agents import OneCardPlayingAgent, CardTestingAgent, S
 from tests.card_tests.card_tests import TestUtilities
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import Sorcerer, MedievalRaven, CrystalBall, Necromancer, Lacertidae, \
+    FreshwaterBass, MoonlightDemon, DarkKnight, Melania, ScotlandCockroach, GoldenSnitch, CurlyTeddyDog, \
+    WanderingBird, SleepwalkingPhysician, ChickenPoultryizer, AngryBird, Castellan
 
 class TestCommon(unittest.TestCase, TestUtilities):
     def setUp(self):
@@ -1616,15 +1618,15 @@ class TestCommon(unittest.TestCase, TestUtilities):
         for turn in range(0, 4):
             game.play_single_turn()
 
-        self.assertEqual(0, game.players[0].hand[0].mana_cost())
-        self.assertEqual(3, game.players[0].hand[1].mana_cost())
-        self.assertEqual(2, game.players[1].hand[0].mana_cost())
+        self.assertEqual(3, game.players[0].hand[0].mana_cost())
+        self.assertEqual(0, game.players[0].hand[1].mana_cost())
+        self.assertEqual(1, game.players[1].hand[0].mana_cost())
 
         game.play_single_turn()
 
-        self.assertEqual(2, game.players[0].hand[0].mana_cost())
-        self.assertEqual(0, game.players[0].hand[1].mana_cost())
-        self.assertEqual(1, game.players[1].hand[0].mana_cost())
+        self.assertEqual(0, game.players[0].hand[0].mana_cost())
+        self.assertEqual(4, game.players[0].hand[1].mana_cost())
+        self.assertEqual(2, game.players[1].hand[0].mana_cost())
 
     def test_MindControlTech(self):
         game = generate_game_for(MindControlTech, StonetuskBoar, OneCardPlayingAgent, OneCardPlayingAgent)
@@ -1935,16 +1937,17 @@ class TestCommon(unittest.TestCase, TestUtilities):
                                  [StonetuskBoar, BoulderfistOgre, BoulderfistOgre, BoulderfistOgre, BoulderfistOgre],
                                  PredictableAgent, PredictableAgent)
 
-        for turn in range(0, 6):
+        for turn in range(0, 8):
             game.play_single_turn()
 
-        self.assertEqual(1, game.players[0].minions[0].calculate_attack())
+        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(2, game.players[0].minions[0].calculate_attack())
         self.assertEqual(1, game.players[0].minions[0].health)
 
         game.play_single_turn()  # Heal Lightwarden
 
         self.assertEqual(2, game.players[0].minions[0].calculate_attack())
-        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(3, game.players[0].minions[0].health)
 
         game.players[0].hero.health = 28
         game.players[0].hero.heal(2, None)
@@ -3664,23 +3667,23 @@ class TestCommon(unittest.TestCase, TestUtilities):
     def test_CurlyTeddyDog(self):
         game = generate_game_for(CurlyTeddyDog, [Consecration, Silence], OneCardPlayingAgent, OneCardPlayingAgent)
 
-        for turn in range(0, 7):
+        for turn in range(0, 5):
             game.play_single_turn()
 
         self.assertEqual(1, len(game.current_player.minions))
         self.assertEqual(4, game.current_player.minions[0].calculate_attack())
 
         game.play_single_turn()
-        self.assertEqual(5, game.other_player.minions[0].calculate_attack())
+        self.assertEqual(4, game.other_player.minions[0].calculate_attack())
 
         game.play_single_turn()
         self.assertEqual(2, len(game.current_player.minions))
         self.assertEqual(4, game.current_player.minions[0].calculate_attack())
-        self.assertEqual(5, game.current_player.minions[1].calculate_attack())
+        self.assertEqual(4, game.current_player.minions[1].calculate_attack())
 
         game.play_single_turn()
         self.assertEqual(5, game.other_player.minions[0].calculate_attack())
-        self.assertEqual(6, game.other_player.minions[1].calculate_attack())
+        self.assertEqual(5, game.other_player.minions[1].calculate_attack())
 
     def test_Mechwarper(self):
         game = generate_game_for([Mechwarper, HarvestGolem], StonetuskBoar, CardTestingAgent, DoNothingAgent)

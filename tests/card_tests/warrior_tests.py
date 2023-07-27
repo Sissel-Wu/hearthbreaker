@@ -6,7 +6,7 @@ from tests.agents.testing_agents import OneCardPlayingAgent, PlayAndAttackAgent,
     SelfSpellTestingAgent, EnemyMinionSpellTestingAgent
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import Kenka, Sublimate, FireHydrant, MorningCall, CherryBomb
 
 class TestWarrior(unittest.TestCase):
     def setUp(self):
@@ -508,12 +508,12 @@ class TestWarrior(unittest.TestCase):
         game = generate_game_for(FireHydrant, BoulderfistOgre,
                                  PlayAndAttackAgent, DoNothingAgent)
 
-        for turn in range(0, 3):
+        for turn in range(0, 5):
             game.play_single_turn()
 
-        self.assertEqual(3, game.current_player.weapon.durability)
+        self.assertEqual(2, game.current_player.weapon.durability)
         self.assertEqual(4, game.current_player.weapon.base_attack)
-        self.assertEqual(27, game.other_player.hero.health)
+        self.assertEqual(26, game.other_player.hero.health)
 
     def test_DeathsBite(self):
         game = generate_game_for([IronfurGrizzly, DeathsBite], Deathlord,

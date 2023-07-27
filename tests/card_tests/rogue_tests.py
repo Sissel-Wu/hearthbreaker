@@ -7,7 +7,7 @@ from tests.agents.testing_agents import PlayAndAttackAgent, OneCardPlayingAgent,
 from tests.testing_utils import generate_game_for
 from hearthbreaker.cards import *
 from hearthbreaker.agents.basic_agents import PredictableAgent, DoNothingAgent
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import FloppyFur, Reveal, FairyWand
 
 class TestRogue(unittest.TestCase):
     def setUp(self):

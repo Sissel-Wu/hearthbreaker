@@ -12,7 +12,7 @@ from hearthbreaker.constants import CHARACTER_CLASS, MINION_TYPE, CARD_RARITY
 from hearthbreaker.replay import playback, Replay
 from tests.testing_utils import generate_game_for, StackedDeck, mock
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import Sterilize, VoiceOfTheLand
 
 class TestDruid(unittest.TestCase):
     def setUp(self):

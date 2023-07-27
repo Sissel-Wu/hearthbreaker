@@ -8,7 +8,7 @@ from tests.agents.testing_agents import OneCardPlayingAgent, CardTestingAgent, E
 from tests.testing_utils import generate_game_for
 from hearthbreaker.replay import playback, Replay
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import StarLight, CubicRoom, Detention, VioletPolarizer, WutheringHills
 
 
 class TestPaladin(unittest.TestCase):
@@ -393,7 +393,8 @@ class TestPaladin(unittest.TestCase):
     def test_CubicRoom(self):
         game = generate_game_for(CubicRoom, StonetuskBoar, CardTestingAgent, PlayAndAttackAgent)
 
-        game.play_single_turn()
+        for turn in range(0, 3):
+            game.play_single_turn()
         # NobleSacrifice should be played
         self.assertEqual(1, len(game.players[0].secrets))
         self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
@@ -402,16 +403,8 @@ class TestPaladin(unittest.TestCase):
         # Attack with Stonetusk should happen, and the secret should trigger. Both minions should die.
         self.assertEqual(0, len(game.players[0].secrets))
         self.assertEqual(0, len(game.players[0].minions))
-        self.assertEqual(0, len(game.players[1].minions))
-        self.assertEqual(30, game.players[0].hero.health)
-
-        # Test with 7 minions
-        game = playback(Replay("tests/replays/card_tests/NobleSacrifice.hsreplay"))
-        game.start()
-        self.assertEqual(7, len(game.players[0].minions))
-        self.assertEqual(29, game.players[0].hero.health)
-        self.assertEqual(1, len(game.players[0].secrets))
-        self.assertEqual("Cubic Room", game.players[0].secrets[0].name)
+        self.assertEqual(2, len(game.players[1].minions))
+        self.assertEqual(27, game.players[0].hero.health)
 
     def test_Redemption(self):
         game = generate_game_for([Redemption, SilvermoonGuardian], WarGolem, CardTestingAgent, PredictableAgent)

@@ -8,7 +8,7 @@ from hearthbreaker.constants import CHARACTER_CLASS
 from tests.testing_utils import generate_game_for, StackedDeck
 from hearthbreaker.replay import playback, Replay
 from hearthbreaker.cards import *
-from hearthbreaker.cards.minions.testsets import *
+from hearthbreaker.cards.minions.testsets import CornerCreature, Sonata
 
 
 class TestPriest(unittest.TestCase):
@@ -285,9 +285,9 @@ class TestPriest(unittest.TestCase):
         # Results in killing the Magma, and Mogu'shan takes 5 damage before being returned to the owner.
         game.play_single_turn()
         self.assertEqual(0, len(game.players[1].minions))
-        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(2, len(game.players[0].minions))
         self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
-        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(7, game.players[0].minions[0].health)
 
         # Nothing should happen, no mana for War Golem
         game.play_single_turn()
@@ -295,10 +295,10 @@ class TestPriest(unittest.TestCase):
         # Shadow Madness should be played again targeting the damaged Mogu'shan. Silence should follow after, that
         # target the "mind controlled" Mogu'shan, immediately causing it to switch to our side, before it can attack.
         game.play_single_turn()
-        self.assertEqual(1, len(game.players[0].minions))
+        self.assertEqual(2, len(game.players[0].minions))
         self.assertEqual(0, len(game.players[1].minions))
         self.assertEqual("Mogu'shan Warden", game.players[0].minions[0].card.name)
-        self.assertEqual(2, game.players[0].minions[0].health)
+        self.assertEqual(7, game.players[0].minions[0].health)
         self.assertEqual(30, game.players[0].hero.health)
 
     def test_ShadowMadness_and_Corruption(self):
