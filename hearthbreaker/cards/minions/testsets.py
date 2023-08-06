@@ -2,52 +2,34 @@ from hearthbreaker.cards.base import SecretCard
 from hearthbreaker.cards.minions.neutral import *
 from hearthbreaker.cards.spells.druid import LeaderOfThePack, SummonPanther
 from hearthbreaker.game_objects import Hero
-from hearthbreaker.tags.action import Heal, Summon, Draw, \
-    Kill, Damage, ResurrectFriendly, Steal, Duplicate, Give, SwapWithHand, AddCard, Transform, ApplySecret, \
-    Silence, Bounce, GiveManaCrystal, Equip, GiveAura, Replace, SetHealth, ChangeTarget, Discard, \
-    RemoveDivineShields, DecreaseDurability, IncreaseDurability, IncreaseWeaponAttack, Destroy, GiveEffect, SwapStats, \
-    Joust, RemoveFromDeck, RemoveSecret
-from hearthbreaker.tags.base import Effect, Deathrattle, Battlecry, Aura, BuffUntil, Buff, AuraUntil, ActionTag
-from hearthbreaker.tags.card_source import CardList, LastCard, DeckSource, Same, CollectionSource
-from hearthbreaker.tags.condition import Adjacent, IsType, MinionHasDeathrattle, IsMinion, IsSecret, \
-    MinionIsTarget, IsSpell, IsDamaged, InGraveyard, ManaCost, OpponentMinionCountIsGreaterThan, AttackGreaterThan, \
-    IsWeapon, HasStatus, AttackLessThanOrEqualTo, OneIn, NotCurrentTarget, HasDivineShield, HasSecret, \
-    BaseAttackEqualTo, GreaterThan, And, TargetAdjacent, Matches, HasBattlecry, Not, IsRarity, MinionIsNotTarget, \
-    IsClass
-from hearthbreaker.tags.event import TurnEnded, CardPlayed, MinionSummoned, TurnStarted, DidDamage, AfterAdded, \
-    SpellCast, CharacterHealed, CharacterDamaged, MinionDied, CardUsed, Damaged, Attack, CharacterAttack, \
-    MinionPlaced, CardDrawn, SpellTargeted, UsedPower
-from hearthbreaker.tags.selector import MinionSelector, BothPlayer, SelfSelector, \
-    PlayerSelector, TargetSelector, EnemyPlayer, CharacterSelector, WeaponSelector, \
-    HeroSelector, OtherPlayer, UserPicker, RandomPicker, CurrentPlayer, Count, Attribute, CardSelector, \
-    Difference, LastDrawnSelector, RandomAmount, DeadMinionSelector, FriendlyPlayer
-from hearthbreaker.tags.status import ChangeAttack, ChangeHealth, Charge, Taunt, Windfury, CantAttack, \
-    SpellDamage, DoubleDeathrattle, Frozen, ManaChange, DivineShield, MegaWindfury, CanAttack, Stealth
+from hearthbreaker.tags.action import Draw, GiveManaCrystal, GiveAura, SetHealth, SwapStats
+from hearthbreaker.tags.base import AuraUntil
+from hearthbreaker.tags.card_source import CardList, CollectionSource
+from hearthbreaker.tags.condition import MinionHasDeathrattle, IsSecret, ManaCost, Matches
+from hearthbreaker.tags.event import CardPlayed, TurnStarted, SpellCast, CharacterHealed, MinionDied, SpellTargeted
+from hearthbreaker.tags.selector import LastDrawnSelector, DeadMinionSelector
+from hearthbreaker.tags.status import Stealth
 import hearthbreaker.targeting
 import copy
-from hearthbreaker.tags.base import Deathrattle, Effect, ActionTag, BuffUntil
-from hearthbreaker.tags.action import Summon, Kill, Damage, Discard, DestroyManaCrystal, Give, Equip, \
-    Remove, Heal, ReplaceHeroWithMinion
-from hearthbreaker.tags.base import Effect, Aura, Deathrattle, Battlecry, Buff, ActionTag
+from hearthbreaker.tags.base import BuffUntil
+from hearthbreaker.tags.action import Summon, Kill, Discard, Heal
+from hearthbreaker.tags.base import Deathrattle
 from hearthbreaker.tags.card_source import HandSource
-from hearthbreaker.tags.condition import IsType, MinionCountIs, Not, OwnersTurn, IsHero, And, Adjacent, IsMinion
-from hearthbreaker.tags.event import TurnEnded, CharacterDamaged, DidDamage, Damaged
-from hearthbreaker.tags.selector import MinionSelector, PlayerSelector, \
-    SelfSelector, BothPlayer, HeroSelector, CharacterSelector, RandomPicker, Attribute, EventValue, CardSelector, \
-    FriendlyPlayer
-from hearthbreaker.tags.status import ChangeHealth, ManaChange, ChangeAttack, Immune
+from hearthbreaker.tags.condition import OwnersTurn, IsHero, And
+from hearthbreaker.tags.event import DidDamage
+from hearthbreaker.tags.selector import CharacterSelector, RandomPicker, FriendlyPlayer
+from hearthbreaker.tags.status import ManaChange
 from hearthbreaker.cards.base import MinionCard, WeaponCard
 from hearthbreaker.cards.spells.warrior import BurrowingMine
 from hearthbreaker.game_objects import Weapon, Minion
-from hearthbreaker.tags.action import IncreaseArmor, Damage, Give, Equip, AddCard
+from hearthbreaker.tags.action import Damage, Give, AddCard
 from hearthbreaker.tags.base import Effect, Battlecry, Buff, Aura, ActionTag
-from hearthbreaker.tags.condition import AttackLessThanOrEqualTo, IsMinion, IsType, GreaterThan
-from hearthbreaker.tags.event import MinionPlaced, CharacterDamaged, ArmorIncreased, Damaged
+from hearthbreaker.tags.condition import IsMinion, IsType, GreaterThan
+from hearthbreaker.tags.event import CharacterDamaged
 from hearthbreaker.tags.selector import BothPlayer, SelfSelector, TargetSelector, HeroSelector, MinionSelector, \
     PlayerSelector, EnemyPlayer, UserPicker, Count, CardSelector
 from hearthbreaker.constants import CHARACTER_CLASS, CARD_RARITY, MINION_TYPE
-from hearthbreaker.tags.status import ChangeAttack, Charge, ChangeHealth
-
+from hearthbreaker.tags.status import ChangeAttack, ChangeHealth
 
 
 
@@ -87,7 +69,7 @@ class FireHydrant(WeaponCard):
 # "Freshwater Bass NAME_END 1 ATK_END 3 DEF_END 4 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Common RARITY_END <b>Battlecry:</b> Gain +1/+1 for each other friendly minion on the battlefield."
 class FreshwaterBass(MinionCard):
     def __init__(self):
-        super().__init__("FreshwaterBass", 4, CHARACTER_CLASS.ALL, CARD_RARITY.COMMON,
+        super().__init__("Freshwater Bass", 4, CHARACTER_CLASS.ALL, CARD_RARITY.COMMON,
                          battlecry=Battlecry(Give([Buff(ChangeAttack(Count(MinionSelector()))),
                                                    Buff(ChangeHealth(Count(MinionSelector())))]),
                                              SelfSelector()))
@@ -95,10 +77,10 @@ class FreshwaterBass(MinionCard):
     def create_minion(self, player):
         return Minion(1, 3)
 
-# "Hellfire NAME_END -1 ATK_END -1 DEF_END 3 COST_END -1 DUR_END Spell TYPE_END Warlock PLAYER_CLS_END NIL RACE_END Free RARITY_END Deal $2 damage to ALL characters."
+# "Heaven Water NAME_END -1 ATK_END -1 DEF_END 3 COST_END -1 DUR_END Spell TYPE_END Warlock PLAYER_CLS_END NIL RACE_END Free RARITY_END Deal $2 damage to ALL characters."
 class HeavenWater(SpellCard):
     def __init__(self):
-        super().__init__("HeavenWater", 3, CHARACTER_CLASS.WARLOCK, CARD_RARITY.FREE)
+        super().__init__("Heaven Water", 3, CHARACTER_CLASS.WARLOCK, CARD_RARITY.FREE)
 
     def use(self, player, game):
         super().use(player, game)
@@ -184,7 +166,7 @@ class ShadowWarrior(MinionCard):
     def create_minion(self, player):
         return Minion(1, 3, charge=True)
 
-# "Medieval Raven NAME_END 1 ATK_END 3 DEF_END 4 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Free RARITY_END <b>Battlecry:</b> Restore 3 Health."
+# "Medieval Raven NAME_END 1 ATK_END 3 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Free RARITY_END <b>Battlecry:</b> Restore 3 Health."
 class MedievalRaven(MinionCard):
     def __init__(self):
         super().__init__("Medieval Raven", 3, CHARACTER_CLASS.ALL, CARD_RARITY.FREE,
@@ -252,7 +234,7 @@ class SingularOptics(SpellCard):
             if len(player.hand) < 10:
                 player.hand.append(minion.card)
 
-# "Flying Guard NAME_END 2 ATK_END 2 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Warlock PLAYER_CLS_END Demon RACE_END Common RARITY_END Whenever your hero takes damage on your turn, gain +2/+1."
+# "Flying Guard NAME_END 2 ATK_END 3 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Warlock PLAYER_CLS_END Demon RACE_END Common RARITY_END Whenever your hero takes damage on your turn, gain +2/+1."
 class FlyingGuard(MinionCard):
     def __init__(self):
         super().__init__("Flying Guard", 3, CHARACTER_CLASS.WARLOCK, CARD_RARITY.COMMON,
@@ -330,7 +312,6 @@ class SkylineKeeper(MinionCard):
     def create_minion(self, player):
         return Minion(2, 3, effects=[Effect(MinionDied(IsType(MINION_TYPE.MURLOC)),
                                             ActionTag(Draw(), PlayerSelector()))])
-
 
 # "Sleepwalking Physician NAME_END 4 ATK_END 3 DEF_END 6 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Common RARITY_END <b>Battlecry:</b> If you have a Mech, gain +2/+2 and add a <b>Spare Part</b> to your hand."
 class SleepwalkingPhysician(MinionCard):
@@ -414,7 +395,7 @@ class BunnyWoodland(MinionCard):
     def create_minion(self, player):
         return Minion(6, 4)
 
-# "FloppyFur NAME_END -1 ATK_END -1 DEF_END 4 COST_END -1 DUR_END Spell TYPE_END Rogue PLAYER_CLS_END NIL RACE_END Rare RARITY_END Destroy your weapon and deal its damage to all enemies."
+# "Floppy Fur NAME_END -1 ATK_END -1 DEF_END 4 COST_END -1 DUR_END Spell TYPE_END Rogue PLAYER_CLS_END NIL RACE_END Rare RARITY_END Destroy your weapon and deal its damage to all enemies."
 class FloppyFur(SpellCard):
     def __init__(self):
         super().__init__("Floppy Fur", 4, CHARACTER_CLASS.ROGUE, CARD_RARITY.RARE)
@@ -472,7 +453,7 @@ class Carbuncle(MinionCard):
     def create_minion(self, p):
         return Minion(1, 3)
 
-# "Sheepfold NAME_END 3 ATK_END 6 DEF_END 4 COST_END -1 DUR_END Minion TYPE_END Warlock PLAYER_CLS_END Demon RACE_END Rare RARITY_END <b>Charge</b>. <b>Battlecry:</b> Discard one random cards."
+# "Sheepfold NAME_END 3 ATK_END 6 DEF_END 4 COST_END -1 DUR_END Minion TYPE_END Warlock PLAYER_CLS_END Demon RACE_END Rare RARITY_END <b>Charge</b>. <b>Battlecry:</b> Discard one random card."
 class Sheepfold(MinionCard):
     def __init__(self):
         super().__init__("Sheepfold", 4, CHARACTER_CLASS.WARLOCK, CARD_RARITY.RARE, minion_type=MINION_TYPE.DEMON,
@@ -510,7 +491,7 @@ class Retaliate(SecretCard):
             game.check_delayed()
             super().reveal()
 
-# "Rain of Chaos NAME_END 2 ATK_END 1 DEF_END 1 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END NIL RARITY_END NIL"
+# "Rain of Chaos NAME_END 2 ATK_END 3 DEF_END 2 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END NIL RARITY_END NIL"
 class RainOfChaos(MinionCard):
     def __init__(self):
         super().__init__("Rain of Chaos", 2, CHARACTER_CLASS.ALL, CARD_RARITY.COMMON, False)
@@ -518,7 +499,7 @@ class RainOfChaos(MinionCard):
     def create_minion(self, player):
         return Minion(2, 3)
 
-# "Gnoll NAME_END 1 ATK_END 3 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END NIL RARITY_END <b>Taunt</b>"
+# "Goblin NAME_END 1 ATK_END 3 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END NIL RARITY_END <b>Taunt</b>"
 class Goblin(MinionCard):
     def __init__(self):
         super().__init__("Goblin", 3, CHARACTER_CLASS.ALL, CARD_RARITY.COMMON, False)
@@ -572,7 +553,6 @@ class DarkKnight(MinionCard):
         return Minion(2, 3, effects=[Effect(CharacterHealed(player=BothPlayer()),
                                             ActionTag(Give(ChangeAttack(1)), SelfSelector()))])
 
-
 # "Moonlight Demon NAME_END 1 ATK_END 4 DEF_END 3 COST_END -1 DUR_END Minion TYPE_END Neutral PLAYER_CLS_END NIL RACE_END Rare RARITY_END ALL minions cost (1) more."
 class MoonlightDemon(MinionCard):
     def __init__(self):
@@ -581,8 +561,7 @@ class MoonlightDemon(MinionCard):
     def create_minion(self, player):
         return Minion(1, 4, auras=[Aura(ManaChange(1), CardSelector(BothPlayer(), IsMinion()))])
 
-
-# "Manifestation NAME_END -1 ATK_END -1 DEF_END 3 COST_END -1 DUR_END Spell TYPE_END Hunter PLAYER_CLS_END NIL RACE_END Rare RARITY_END <b>Secret:</b> When a character attacks your hero, instead he attacks another random character."
+# "Manifestation NAME_END -1 ATK_END -1 DEF_END 2 COST_END -1 DUR_END Spell TYPE_END Hunter PLAYER_CLS_END NIL RACE_END Rare RARITY_END <b>Secret:</b> When a character attacks your hero, instead he attacks another random character."
 class Manifestation(SecretCard):
     def __init__(self):
         super().__init__("Manifestation", 2, CHARACTER_CLASS.HUNTER, CARD_RARITY.RARE)
@@ -635,7 +614,7 @@ class VoiceOfTheLand(SpellCard):
         option = player.agent.choose_option([LeaderOfThePack(), SummonPanther()], player)
         option.use(player, game)
 
-# "Redemption NAME_END -1 ATK_END -1 DEF_END 1 COST_END -1 DUR_END Spell TYPE_END Paladin PLAYER_CLS_END NIL RACE_END Common RARITY_END <b>Secret:</b> When one of your minions dies, return it to life with 2 Health."
+# "Detention NAME_END -1 ATK_END -1 DEF_END 1 COST_END -1 DUR_END Spell TYPE_END Paladin PLAYER_CLS_END NIL RACE_END Common RARITY_END <b>Secret:</b> When one of your minions dies, return it to life with 2 Health."
 class Detention(SecretCard):
     def __init__(self):
         super().__init__("Detention", 1, CHARACTER_CLASS.PALADIN, CARD_RARITY.COMMON)
@@ -779,4 +758,3 @@ class WutheringHills(SpellCard):
         super().use(player, game)
         for n in range(0, 3):
             player.draw()
-
